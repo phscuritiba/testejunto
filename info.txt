@@ -1,0 +1,46 @@
+##Dockerfile
+	FROM ubuntu:latest
+	MAINTAINER PH
+	WORKDIR /var/www
+	COPY . /var/www
+	RUN apt-get update && \
+		apt-get install -y \
+		wget \
+		unzip \
+		python3 \
+		python3-pip \
+		python3-setuptools \
+		less \
+		&& pip3 install --upgrade pip \
+		&& apt-get clean
+	RUN pip3 --no-cache-dir install --upgrade awscli
+	RUN pip3 install awscli --upgrade --user
+	WORKDIR /var/www
+	RUN pip install -r requirements.txt
+	CMD ["/bin/bash"]
+
+##Run container (roda o container mapeando o filesystem do host onde estao os aquivos)
+	docker container run -itd --name convert -v "/home/ubuntu/arqsreceita:/var/www" ph/junto
+
+##Acessar o container e configurar com as credenciais descritas abaixo
+	#Dados para configuracao do uauario criado no IAM para executar o awscli neste servidor 
+		#AWS Access Key ID [None]: AKIAXJTYKNDXY7XCG5MQ
+		#AWS Secret Access Key [None]: 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
+		#Default region name [None]: sa-east-1
+		#Default output format [None]: json
+		
+#Script processo.sh (codigo do .sh)
+	
+	#!/bin/bash
+	
+	#Faz o download dos arquivos .zip do site da Recieta Federal
+		for arquivo in {01..02}; do wget -c -A zip "http://200.152.38.155/CNPJ/DADOS_ABERTOS_CNPJ_"$arquivo".zip" -P /var/www/arqsreceita; done
+	
+	#Executa o .py para converter para .csv
+		python3 /var/www/cnpj.py /var/www/ csv /var/www/csv --dir
+	
+	#Faz o upload dos arquivos .csv
+		aws s3 cp /var/www/csv/cnaes_secundarios.csv s3://junto-s3-ph/
+		aws s3 cp /var/www/csv/empresas.csv s3://junto-s3-ph/
+		aws s3 cp /var/www/csv/socios.csv s3://junto-s3-ph/
+
