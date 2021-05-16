@@ -6,7 +6,7 @@
 #Executa o .py para converter para .csv
 	python3 /var/www/cnpj.py /var/www/ csv /var/www/csv --dir
 	
-#Faz o upload dos arquivos .csv
+#Faz o upload dos arquivos .csv alterado novamente
 	aws s3 cp /var/www/csv/cnaes_secundarios.csv s3://junto-s3-ph/
 	aws s3 cp /var/www/csv/empresas.csv s3://junto-s3-ph/
 	aws s3 cp /var/www/csv/socios.csv s3://junto-s3-ph/
